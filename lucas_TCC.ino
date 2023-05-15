@@ -29,8 +29,8 @@
 #define RELAY_2 39      // pin RESISTENCIA (Relay 2) AQUECER A BARRA
 
 // VARIABLES 
-int T = 20;                   // Controle de temperatura do amarelo
-int danger = 28;              // Valor de temperatura que o sistema desliga sozinho
+int T = 40;                   // Controle de temperatura do amarelo
+int danger = 150;              // Valor de temperatura que o sistema desliga sozinho
 unsigned long lastTime = 0;
 const int interval = 10000;   // Tempo em milissegundos (10 segundos)
 int state_button = 2;
@@ -63,7 +63,7 @@ void setup(){
     pinMode(RELAY_1, OUTPUT);
     pinMode(RELAY_2, OUTPUT);   
     
-    // Parametro Iniciais de verificação
+    // PARAMETRO INICIAL DE VERIFICAÇÃO
     digitalWrite(YELLOW_LED, HIGH);  
     digitalWrite(BLUE_LED, HIGH);
     digitalWrite(RED_LED, HIGH);
@@ -85,7 +85,7 @@ void loop(){
     if (currentTime - lastTime >= interval) {
         lastTime = currentTime; // Atualiza o tempo da última leitura
         
-        // Lê as temperaturas dos sensores e as envia para o Python
+        // LÊ AS TEMPERATURAS DOS SENSORES E AS ENVIA PARA O PYTHON
         Serial.print(millis() / 1000.0); // Envia o tempo em segundos
         Serial.print(", ");
         Serial.print(ktc01.readCelsius());
@@ -100,28 +100,37 @@ void loop(){
         Serial.println();
     }
 
-    // Se o botão for pressionado 
+    // SE O BOTÃO FOR PRESSIONADO 
+    /*
+    Quando o botão é precionado ele vai acrecentar um número saindo de um estado par(0) par impar(1)
+    Quando estiver sobre a rotina IMPAR o LED VERMELHO vai LIGAR junto com as RESISTÊNCIAS,
+    Inicialmento o Display estará fazendo a verificação das temperadtura dos 4 termopares
+    Quando o botão for precionado o display sai da leitura dos 4 sensores e inicia a verificação do 5° termopar (resistencia)   
+    */
     if (digitalRead(PUSHBUTTON) == LOW){
         state_button = state_button + 1;
     }  
     
     // LEDS
-    digitalWrite(BLUE_LED, HIGH);       // SYSTEM ON
+    digitalWrite(BLUE_LED, HIGH);       // SISTEMA (LIGADO)
     
-    if (ktc05.readCelsius() >= T){     // YELLOW LED CONTROL TEMPERATURE
-      digitalWrite(YELLOW_LED, HIGH);   // RESISTANCE >= TºC 
+    if (ktc05.readCelsius() >= T){      // CONTROLE DE TEMPERATURA (LED AMARELO)
+      digitalWrite(YELLOW_LED, HIGH);   // RESISTÊNCIA >= T 40ºC 
     } else {
-      digitalWrite(YELLOW_LED, LOW);    // RESISTANCE > TºC
+      digitalWrite(YELLOW_LED, LOW);    // RESISTÊNCIA > T 40ºC
     }
     
-    if (state_button % 2 == 0){         // IF EVEN
+    if (state_button % 2 == 0){         // SE PAR
       
-        digitalWrite(RED_LED, LOW);     // RESISTANCE OFF
+        digitalWrite(RED_LED, LOW);     // RESISTÊNCIA DESLIGADA 
         // RELAYs
-        digitalWrite(RELAY_1, HIGH);
-        digitalWrite(RELAY_2, HIGH);
+        digitalWrite(RELAY_1, HIGH);    // RESISTÊNCIA DESLIGADA (DEVIDO AOS RELAY SEREM UM CONJUNTO DE 4 UNIDADES USADOS EM MOTORES)
+        digitalWrite(RELAY_2, HIGH);    // RESISTÊNCIA DESLIGADA (DEVIDO AOS RELAY SEREM UM CONJUNTO DE 4 UNIDADES USADOS EM MOTORES)
 
-        // LCD
+         /*
+          LIMPA A TELA DO DISPLAY, POSTERIORMENTE INICIA A LEITURA DA TEMPERATURA DO TERMISTOR 1 AO 4
+          */
+        // LCD DISPLAY 
         lcd.clear();                     // Limpa a tela
         lcd.setCursor(0, 0);
         lcd.print("1:");
@@ -144,22 +153,28 @@ void loop(){
         lcd.setCursor(11, 1);
         lcd.print(ktc04.readCelsius());
 
-    } // END IF EVEN
-    else { // IF ODD
+    } // FINAL SE PAR
+    /*
+     QUANDO A VARIÁVEL STATE_BUTTON ESTA IMPAR, LIGA O LED VERMELHO, LIGA OS 2 RELAYs ACIONANDO AS 2 RESISTÊNCIAS E INICIA O AQUECIMENTO DA BARRA.
+     */
+    else { // SE IMPAR 
 
-        digitalWrite(RED_LED, HIGH);        // RESISTANCE ON
+        digitalWrite(RED_LED, HIGH);        // LED LIGADO
         // RELAYs
-        digitalWrite(RELAY_1, LOW);
-        digitalWrite(RELAY_2, LOW);
-        
-        if (ktc05.readCelsius() >= danger){ // 300ºC LIMIT SAFE ZONE.
+        digitalWrite(RELAY_1, LOW);         // RESISTÊNCIA LIGADO
+        digitalWrite(RELAY_2, LOW);         // RESISTÊNCIA LIGADO
+
+        /*
+         SISTEMA DE SEGURANÇA IMPEDE QUE A BARRA ULTRAPASE OS 300°C.
+         */
+        if (ktc05.readCelsius() >= danger){ // 300ºC LIMITE DE PROTEÇÃO DO SISTEMA.
           state_button = state_button + 1;
-          digitalWrite(RED_LED, LOW);       // OFF
+          digitalWrite(RED_LED, LOW);       // DESLIGADO
           digitalWrite(RELAY_1, HIGH);
           digitalWrite(RELAY_2, HIGH);
         } 
 
-        // LCD
+        // LCD DISPLAY
         lcd.clear();
         lcd.setCursor(1, 0);
         lcd.print("SISTEMA LIGADO");
@@ -176,7 +191,7 @@ void loop(){
         lcd.setCursor(14, 1);
         lcd.print("C");
                
-    } // END ODD
+    } // FINAL IMPAR
     
     delay(1000); //INTERVALO DE 500 MILISSEGUNDOS   
 } // end void
