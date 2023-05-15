@@ -29,7 +29,7 @@ while True:
 
     # Checagem para garantir que os dados são válidos
     if len(dados_separados) == 6:
-        # Armazenamento dos dados em variáveis
+        # Armazenamento dos dados em variáveis em cada 10 segundos
         t = datetime.datetime.now().strftime('%H:%M:%S')
         s1 = float(dados_separados[1])
         s2 = float(dados_separados[2])
@@ -47,20 +47,20 @@ while True:
 
         # Plotagem dos dados
         ax.clear()
-        ax.plot(tempo, sensor_1, color='royalblue', label='Sensor 1')
-        ax.plot(tempo, sensor_2, color='dodgerblue', label='Sensor 2')
-        ax.plot(tempo, sensor_3, color='navy', label='Sensor 3')
-        ax.plot(tempo, sensor_4, color='aqua', label='Sensor 4')
-        ax.plot(tempo, sensor_5, color='red', label='Resistência')
+        ax.plot(tempo, sensor_1, color='blue', label='Sensor 1')    # cor da linha no sensor 1
+        ax.plot(tempo, sensor_2, color='navy', label='Sensor 2')    # cor na linha no sensor 2
+        ax.plot(tempo, sensor_3, color='lime', label='Sensor 3')    # cor da linha no sensor 3
+        ax.plot(tempo, sensor_4, color='aqua', label='Sensor 4')    # cor da linha no sensor 4
+        ax.plot(tempo, sensor_5, color='red', label='Resistência')  # cor da linha no sensor resistência 5
         ax.legend()
-        ax.set_xlabel('Tempo')
-        ax.set_ylabel('Temperatura (Celsius)')
-        ax.set_title('Temperaturas dos Sensores')
+        ax.set_xlabel('Tempo')  # no eixo x
+        ax.set_ylabel('Temperatura (Celsius)')  # no eixo y
+        ax.set_title('Temperaturas dos Sensores')  # legenda superior
         plt.gcf().autofmt_xdate()
         plt.draw()
         plt.pause(0.1)
 
-        # Salvar os dados em um arquivo CSV
+        # Salvar os dados em um arquivo CSV para visualização posterior completa do gráfico
         with open(nome_arquivo, 'a', newline='') as arquivo_csv:
             escrever = csv.writer(arquivo_csv)
             escrever.writerow([t, s1, s2, s3, s4, s5])
